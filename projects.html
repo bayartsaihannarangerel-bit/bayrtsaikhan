@@ -26,33 +26,42 @@
   <script type="module">
     import { supabase } from './js/supabase.js'
 
-    const grid = document.getElementById('projects-grid')
-    grid.innerHTML = '<p style="color:var(--text-muted)">Ачаалж байна...</p>'
+    async function loadProjects() {
+      const grid = document.getElementById('projects-grid')
 
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('created_at', { ascending: false })
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-    if (error || !data?.length) {
-      grid.innerHTML = '<div class="empty-state"><p>Projects удахгүй нэмэгдэнэ.</p></div>'
-      return
-    }
+      if (error) {
+        console.error('Supabase error:', error)
+        grid.innerHTML = `<p style="color:var(--accent2)">Алдаа гарлаа: ${error.message}</p>`
+        return
+      }
 
-    grid.innerHTML = data.map(p => `
-      <div class="card">
-        ${p.image_url ? `<img src="${p.image_url}" alt="${p.title}">` : ''}
-        <div class="card-body">
-          <h3>${p.title}</h3>
-          <p>${p.description || ''}</p>
-          <div class="tags">${(p.tags || []).map(t => `<span>${t}</span>`).join('')}</div>
-          <div class="links">
-            ${p.github_url ? `<a href="${p.github_url}" target="_blank">↗ GitHub</a>` : ''}
-            ${p.live_url ? `<a href="${p.live_url}" target="_blank">↗ Live</a>` : ''}
+      if (!data || data.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>Projects удахгүй нэмэгдэнэ.</p></div>'
+        return
+      }
+
+      grid.innerHTML = data.map(p => `
+        <div class="card">
+          ${p.image_url ? `<img src="${p.image_url}" alt="${p.title}">` : ''}
+          <div class="card-body">
+            <h3>${p.title}</h3>
+            <p>${p.description || ''}</p>
+            <div class="tags">${(p.tags || []).map(t => `<span>${t}</span>`).join('')}</div>
+            <div class="links">
+              ${p.github_url ? `<a href="${p.github_url}" target="_blank">↗ GitHub</a>` : ''}
+              ${p.live_url ? `<a href="${p.live_url}" target="_blank">↗ Live</a>` : ''}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('')
+      `).join('')
+    }
+
+    loadProjects()
   </script>
 </body>
 </html>
