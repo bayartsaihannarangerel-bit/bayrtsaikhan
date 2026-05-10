@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="projects.html">Projects</a>
+    <a href="skills.html">Skills</a>
+    <a href="messages.html">Messages</a>
+    <button onclick="doLogout()">Гарах</button>
+  </nav>
+
+  <div class="admin-container">
+    <h1>Dashboard</h1>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Projects</h3>
+        <p id="project-count">...</p>
+      </div>
+      <div class="stat-card">
+        <h3>Skills</h3>
+        <p id="skill-count">...</p>
+      </div>
+      <div class="stat-card">
+        <h3>Messages</h3>
+        <p id="message-count">...</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '../js/supabase.js'
+    import { requireAuth, logout } from './js/auth.js'
+    import { getStats } from './js/admin.js'
+
+    await requireAuth()
+    window.doLogout = logout
+
+    const { count: pc } = await supabase.from('projects').select('*', { count: 'exact', head: true })
+    const { count: sc } = await supabase.from('skills').select('*', { count: 'exact', head: true })
+    const { count: mc } = await supabase.from('contacts').select('*', { count: 'exact', head: true })
+
+    document.getElementById('project-count').textContent = pc ?? 0
+    document.getElementById('skill-count').textContent = sc ?? 0
+    document.getElementById('message-count').textContent = mc ?? 0
+  </script>
+</body>
+</html>

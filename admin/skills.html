@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Skills удирдах</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="projects.html">Projects</a>
+    <a href="skills.html">Skills</a>
+    <a href="messages.html">Messages</a>
+    <button onclick="doLogout()">Гарах</button>
+  </nav>
+
+  <div class="admin-container">
+    <h1>Skills</h1>
+
+    <form id="skill-form">
+      <input type="hidden" id="edit-id">
+      <input type="text" id="name" placeholder="Skill нэр (жш: JavaScript)" required>
+      <input type="text" id="category" placeholder="Ангилал (жш: Frontend)">
+      <label>Түвшин: <span id="level-val">80</span>%</label>
+      <input type="range" id="level" min="1" max="100" value="80"
+        oninput="document.getElementById('level-val').textContent = this.value">
+      <input type="text" id="icon" placeholder="Icon (жш: 🟨)">
+      <button type="submit">Хадгалах</button>
+      <button type="button" onclick="resetForm()">Цэвэрлэх</button>
+    </form>
+
+    <div id="skills-list"></div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '../js/supabase.js'
+    import { requireAuth, logout } from './js/auth.js'
+    import { getSkills, saveSkill, deleteSkill, getSkillById } from './js/admin.js'
+
+    await requireAuth()
+    window.doLogout = logout
+
+    async function loadSkills() {
+      const { data } = await supabase.from('skills').select('*').order('category')
+      const list = document.getElementById('skills-list')
+      list.innerHTML = data.map(s => `
+        <div class="admin-card">
+          <strong>${s.icon || ''} ${s.name}</strong>
+          <span>${s.category || ''} — ${s.level || 0}%</span>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${s.level || 0}%"></div>
+          </div>
+          <div>
+            <button onclick="editSkill('${s.id}')">Засах</button>
+            <button onclick="deleteSkill('${s.id}')" class="danger">Устгах</button>
+          </div>
+        </div>
+      `).join('')
+    }
+
+    document.getElementById('skill-form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id = document.getElementById('edit-id').value
+      const payload = {
+        name: document.getElementById('name').value,
+        category: document.getElementById('category').value,
+        level: parseInt(document.getElementById('level').value),
+        icon: document.getElementById('icon').value
+      }
+      if (id) {
+        await supabase.from('skills').update(payload).eq('id', id)
+      } else {
+        await supabase.from('skills').insert(payload)
+      }
+      resetForm()
+      loadSkills()
+    })
+
+    window.editSkill = async (id) => {
+      const { data } = await supabase.from('skills').select('*').eq('id', id).single()
+      document.getElementById('edit-id').value = data.id
+      document.getElementById('name').value = data.name
+      document.getElementById('category').value = data.category || ''
+      document.getElementById('level').value = data.level || 80
+      document.getElementById('level-val').textContent = data.level || 80
+      document.getElementById('icon').value = data.icon || ''
+    }
+
+    window.deleteSkill = async (id) => {
+      if (!confirm('Устгах уу?')) return
+      await supabase.from('skills').delete().eq('id', id)
+      loadSkills()
+    }
+
+    window.resetForm = () => {
+      document.getElementById('skill-form').reset()
+      document.getElementById('edit-id').value = ''
+      document.getElementById('level-val').textContent = '80'
+    }
+
+    loadSkills()
+  </script>
+</body>
+</html>

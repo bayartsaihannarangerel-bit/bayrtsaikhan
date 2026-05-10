@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="mn">
 <head>
@@ -35,6 +36,8 @@
   <script type="module">
     import { supabase } from '../js/supabase.js'
     import { requireAuth, logout } from './js/auth.js'
+    import { getProjects, saveProject, deleteProject, getProjectById } from './js/admin.js'
+
 
     await requireAuth()
     window.doLogout = logout

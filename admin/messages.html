@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Messages</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="projects.html">Projects</a>
+    <a href="skills.html">Skills</a>
+    <a href="messages.html">Messages</a>
+    <button onclick="doLogout()">Гарах</button>
+  </nav>
+
+  <div class="admin-container">
+    <h1>Messages</h1>
+    <div id="messages-list"></div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '../js/supabase.js'
+    import { requireAuth, logout } from './js/auth.js'
+    import { getContacts, markAsRead, deleteContact } from './js/admin.js'
+
+    await requireAuth()
+    window.doLogout = logout
+
+    async function loadMessages() {
+      const { data } = await supabase
+        .from('contacts')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      const list = document.getElementById('messages-list')
+      if (!data.length) {
+        list.innerHTML = '<p>Мессеж байхгүй байна.</p>'
+        return
+      }
+      list.innerHTML = data.map(m => `
+        <div class="admin-card ${m.is_read ? '' : 'unread'}">
+          <div class="msg-header">
+            <strong>${m.name}</strong>
+            <span>${m.email}</span>
+            <small>${new Date(m.created_at).toLocaleString('mn-MN')}</small>
+            ${!m.is_read ? `<button onclick="markRead('${m.id}')">Уншсан</button>` : '<span class="read-badge">✓ Уншсан</span>'}
+          </div>
+          <p>${m.message}</p>
+        </div>
+      `).join('')
+    }
+
+    window.markRead = async (id) => {
+      await supabase.from('contacts').update({ is_read: true }).eq('id', id)
+      loadMessages()
+    }
+
+    loadMessages()
+  </script>
+</body>
+</html>

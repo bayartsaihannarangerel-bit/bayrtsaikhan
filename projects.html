@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Projects</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Нүүр</a>
+    <a href="projects.html">Projects</a>
+    <a href="contact.html">Холбоо барих</a>
+  </nav>
+
+  <section>
+    <h1>Бүх Projects</h1>
+    <div id="projects-grid"></div>
+  </section>
+
+  <script type="module">
+    import { supabase } from './js/supabase.js'
+
+    const { data } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    const grid = document.getElementById('projects-grid')
+    grid.innerHTML = data.map(p => `
+      <div class="card">
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.title}">` : ''}
+        <h3>${p.title}</h3>
+        <p>${p.description || ''}</p>
+        <div class="tags">${(p.tags || []).map(t => `<span>${t}</span>`).join('')}</div>
+        <div class="links">
+          ${p.github_url ? `<a href="${p.github_url}" target="_blank">GitHub</a>` : ''}
+          ${p.live_url ? `<a href="${p.live_url}" target="_blank">Live</a>` : ''}
+        </div>
+      </div>
+    `).join('')
+  </script>
+</body>
+</html>
