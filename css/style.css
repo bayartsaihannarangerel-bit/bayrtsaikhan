@@ -280,6 +280,7 @@ section {
   opacity: 0;
   transition: var(--transition);
   border-radius: var(--radius);
+  pointer-events: none;
 }
 
 .card:hover {
@@ -341,6 +342,8 @@ section {
 }
 
 .links a {
+  position: relative;
+  z-index: 1;         
   font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
