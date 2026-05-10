@@ -2,12 +2,14 @@
 <html lang="mn">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Dashboard</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
   <nav class="admin-nav">
-    <a href="dashboard.html">Dashboard</a>
+    <span class="nav-brand">bsn<span>.</span> admin</span>
+    <a href="dashboard.html" class="active">Dashboard</a>
     <a href="projects.html">Projects</a>
     <a href="skills.html">Skills</a>
     <a href="messages.html">Messages</a>
@@ -16,33 +18,50 @@
 
   <div class="admin-container">
     <h1>Dashboard</h1>
+
     <div class="stats-grid">
       <div class="stat-card">
         <h3>Projects</h3>
-        <p id="project-count">...</p>
+        <p id="project-count">—</p>
       </div>
       <div class="stat-card">
         <h3>Skills</h3>
-        <p id="skill-count">...</p>
+        <p id="skill-count">—</p>
       </div>
       <div class="stat-card">
         <h3>Messages</h3>
-        <p id="message-count">...</p>
+        <p id="message-count">—</p>
       </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-tag">Shortcuts</span>
+      <h2>Хурдан үйлдэл</h2>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <a href="projects.html" class="btn btn-ghost">+ Project нэмэх</a>
+      <a href="skills.html" class="btn btn-ghost">+ Skill нэмэх</a>
+      <a href="messages.html" class="btn btn-ghost">Messages харах</a>
+      <a href="../index.html" target="_blank" class="btn btn-ghost">↗ Сайт харах</a>
     </div>
   </div>
 
   <script type="module">
     import { supabase } from '../js/supabase.js'
     import { requireAuth, logout } from './js/auth.js'
-    import { getStats } from './js/admin.js'
 
     await requireAuth()
     window.doLogout = logout
 
-    const { count: pc } = await supabase.from('projects').select('*', { count: 'exact', head: true })
-    const { count: sc } = await supabase.from('skills').select('*', { count: 'exact', head: true })
-    const { count: mc } = await supabase.from('contacts').select('*', { count: 'exact', head: true })
+    const [
+      { count: pc },
+      { count: sc },
+      { count: mc }
+    ] = await Promise.all([
+      supabase.from('projects').select('*', { count: 'exact', head: true }),
+      supabase.from('skills').select('*', { count: 'exact', head: true }),
+      supabase.from('contacts').select('*', { count: 'exact', head: true })
+    ])
 
     document.getElementById('project-count').textContent = pc ?? 0
     document.getElementById('skill-count').textContent = sc ?? 0

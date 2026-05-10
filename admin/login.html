@@ -2,31 +2,58 @@
 <html lang="mn">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Нэвтрэх</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-  <div class="login-box">
-    <h2>Admin нэвтрэх</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Нууц үг">
-    <button onclick="login()">Нэвтрэх</button>
-    <p id="err"></p>
+  <div class="login-wrapper">
+    <div class="login-box">
+      <div class="login-logo">bsn<span>.</span></div>
+      <p class="login-sub">Admin хэсэгт нэвтрэх</p>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="name@email.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label>Нууц үг</label>
+          <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:4px">Нэвтрэх →</button>
+        <p id="err"></p>
+      </form>
+    </div>
   </div>
 
   <script type="module">
     import { supabase } from '../js/supabase.js'
 
-    window.login = async () => {
-      const email = document.getElementById('email').value
-      const password = document.getElementById('password').value
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+    // Аль хэдийн нэвтэрсэн бол dashboard руу
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) window.location.href = 'dashboard.html'
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const btn = e.target.querySelector('button[type="submit"]')
+      const err = document.getElementById('err')
+      btn.textContent = 'Нэвтэрч байна...'
+      btn.disabled = true
+      err.textContent = ''
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      })
+
       if (error) {
-        document.getElementById('err').textContent = 'Нэвтрэх мэдээлэл буруу'
+        err.textContent = 'Email эсвэл нууц үг буруу байна.'
+        btn.textContent = 'Нэвтрэх →'
+        btn.disabled = false
       } else {
         window.location.href = 'dashboard.html'
       }
-    }
+    })
   </script>
 </body>
 </html>

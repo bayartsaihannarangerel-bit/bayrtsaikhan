@@ -3,26 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Миний Portfolio</title>
+  <title>Bayrtsaikhan — Portfolio</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
   <nav>
+    <a href="index.html" class="logo">bsn<span>.</span></a>
     <a href="index.html">Нүүр</a>
     <a href="projects.html">Projects</a>
     <a href="contact.html">Холбоо барих</a>
   </nav>
 
-  <section class="hero">
-    <h1>Сайн уу, би <span class="highlight">ЧИНИЙ НЭР</span></h1>
-    <p>Full-stack developer | Монгол</p>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label">Нээлттэй ажилд</div>
+    <h1>
+      Баярцайхан<br>
+      <span class="line2">Нарангэрэл</span>
+    </h1>
+    <p>Full-stack developer. Цэвэр код, сайн дизайн, ажилладаг бүтээгдэхүүн.</p>
+    <div class="hero-actions">
+      <a href="projects.html" class="btn btn-primary">Projects харах →</a>
+      <a href="contact.html" class="btn btn-ghost">Холбоо барих</a>
+    </div>
+  </div>
+
+  <!-- Featured Projects -->
+  <section>
+    <div class="section-header">
+      <span class="section-tag">Work</span>
+      <h2>Сүүлийн ажлууд</h2>
+    </div>
+    <div id="projects-grid">
+      <!-- JS-аар дүүргэнэ -->
+    </div>
   </section>
 
-  <section class="featured-projects">
-    <h2>Сүүлийн projects</h2>
-    <div id="projects-grid"></div>
+  <!-- Skills -->
+  <section>
+    <div class="section-header">
+      <span class="section-tag">Skills</span>
+      <h2>Чадварууд</h2>
+    </div>
+    <div class="skills-grid" id="skills-grid"></div>
   </section>
 
-  <script type="module" src="js/main.js"></script>
+  <script type="module">
+    import { supabase } from './js/supabase.js'
+
+    // Projects
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(3)
+
+    const grid = document.getElementById('projects-grid')
+    if (projects?.length) {
+      grid.innerHTML = projects.map(p => `
+        <div class="card">
+          ${p.image_url ? `<img src="${p.image_url}" alt="${p.title}">` : ''}
+          <div class="card-body">
+            <h3>${p.title}</h3>
+            <p>${p.description || ''}</p>
+            <div class="tags">${(p.tags || []).map(t => `<span>${t}</span>`).join('')}</div>
+            <div class="links">
+              ${p.github_url ? `<a href="${p.github_url}" target="_blank">↗ GitHub</a>` : ''}
+              ${p.live_url ? `<a href="${p.live_url}" target="_blank">↗ Live</a>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('')
+    } else {
+      grid.innerHTML = '<div class="empty-state"><p>Projects удахгүй нэмэгдэнэ.</p></div>'
+    }
+
+    // Skills
+    const { data: skills } = await supabase
+      .from('skills')
+      .select('*')
+      .order('level', { ascending: false })
+
+    const sg = document.getElementById('skills-grid')
+    if (skills?.length) {
+      sg.innerHTML = skills.map(s => `
+        <div class="skill-card">
+          <div class="skill-header">
+            <span>${s.icon || ''} ${s.name}</span>
+            <span>${s.level || 0}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${s.level || 0}%"></div>
+          </div>
+        </div>
+      `).join('')
+    }
+  </script>
 </body>
 </html>
