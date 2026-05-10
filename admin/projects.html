@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Projects удирдах</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="projects.html">Projects</a>
+    <a href="skills.html">Skills</a>
+    <a href="messages.html">Messages</a>
+    <button onclick="doLogout()">Гарах</button>
+  </nav>
+
+  <div class="admin-container">
+    <h1>Projects</h1>
+
+    <form id="project-form">
+      <input type="hidden" id="edit-id">
+      <input type="text" id="title" placeholder="Гарчиг" required>
+      <textarea id="description" placeholder="Тайлбар"></textarea>
+      <input type="text" id="image_url" placeholder="Зурагны URL">
+      <input type="text" id="github_url" placeholder="GitHub URL">
+      <input type="text" id="live_url" placeholder="Live URL">
+      <input type="text" id="tags" placeholder="Tags (таслалаар тусгаар: js, css)">
+      <button type="submit">Хадгалах</button>
+      <button type="button" onclick="resetForm()">Цэвэрлэх</button>
+    </form>
+
+    <div id="projects-list"></div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '../js/supabase.js'
+    import { requireAuth, logout } from './js/auth.js'
+
+    await requireAuth()
+    window.doLogout = logout
+
+    async function loadProjects() {
+      const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      const list = document.getElementById('projects-list')
+      list.innerHTML = data.map(p => `
+        <div class="admin-card">
+          <strong>${p.title}</strong>
+          <p>${p.description || ''}</p>
+          <button onclick="editProject('${p.id}')">Засах</button>
+          <button onclick="deleteProject('${p.id}')" class="danger">Устгах</button>
+        </div>
+      `).join('')
+    }
+
+    document.getElementById('project-form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id = document.getElementById('edit-id').value
+      const payload = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        image_url: document.getElementById('image_url').value,
+        github_url: document.getElementById('github_url').value,
+        live_url: document.getElementById('live_url').value,
+        tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean)
+      }
+      if (id) {
+        await supabase.from('projects').update(payload).eq('id', id)
+      } else {
+        await supabase.from('projects').insert(payload)
+      }
+      resetForm()
+      loadProjects()
+    })
+
+    window.editProject = async (id) => {
+      const { data } = await supabase.from('projects').select('*').eq('id', id).single()
+      document.getElementById('edit-id').value = data.id
+      document.getElementById('title').value = data.title
+      document.getElementById('description').value = data.description || ''
+      document.getElementById('image_url').value = data.image_url || ''
+      document.getElementById('github_url').value = data.github_url || ''
+      document.getElementById('live_url').value = data.live_url || ''
+      document.getElementById('tags').value = (data.tags || []).join(', ')
+    }
+
+    window.deleteProject = async (id) => {
+      if (!confirm('Устгах уу?')) return
+      await supabase.from('projects').delete().eq('id', id)
+      loadProjects()
+    }
+
+    window.resetForm = () => {
+      document.getElementById('project-form').reset()
+      document.getElementById('edit-id').value = ''
+    }
+
+    loadProjects()
+  </script>
+</body>
+</html>
